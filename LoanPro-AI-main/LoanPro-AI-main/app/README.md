@@ -2,6 +2,8 @@
 
 An AI-powered Credit Eligibility Underwriting Dashboard serving a tuned **XGBoost Classifier** model. The application features a lightweight, production-ready **Flask API backend** and a futuristic, glassmorphic **fintech analytics dashboard** styled using a high-tech deep green and cream color scheme.
 
+Live demo: [https://loanpro-ai-loan-eligibity-predictor-1.onrender.com](https://loanpro-ai-loan-eligibity-predictor-1.onrender.com)
+
 This repository is optimized for deployment on cloud platforms (Docker, Render, Railway, AWS, etc.) and is suitable as a final year college project or a portfolio showcase.
 
 ---
