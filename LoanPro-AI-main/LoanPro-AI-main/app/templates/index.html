@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoanPro AI - Credit Eligibility Evaluation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-gradients">
+        <div class="blob-1"></div>
+        <div class="blob-2"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo-area">
+                <span class="logo-icon">✦</span>
+                <h1>LoanPro AI</h1>
+            </div>
+            <p class="subtitle">Underwriting Dashboard & XGBoost Loan Eligibility Classifier</p>
+        </header>
+
+        <!-- Telemetry Stats Bar -->
+        <section class="telemetry-bar">
+            <div class="telemetry-card">
+                <span class="telemetry-label">Model Architecture</span>
+                <span class="telemetry-value">XGBoost Classifier</span>
+            </div>
+            <div class="telemetry-card">
+                <span class="telemetry-label">Validation Accuracy</span>
+                <span class="telemetry-value">98.61%</span>
+            </div>
+            <div class="telemetry-card">
+                <span class="telemetry-label">ROC AUC Score</span>
+                <span class="telemetry-value">0.9961</span>
+            </div>
+            <div class="telemetry-card">
+                <span class="telemetry-label">Response Latency</span>
+                <span class="telemetry-value">&lt; 5ms</span>
+            </div>
+            <div class="telemetry-card">
+                <span class="telemetry-label">Dataset Size</span>
+                <span class="telemetry-value">9,578 Rows</span>
+            </div>
+        </section>
+
+        <!-- Profile Presets Bar -->
+        <section class="presets-section">
+            <span class="presets-label">Load Applicant Presets:</span>
+            <div class="presets-grid">
+                <button type="button" class="preset-btn" data-preset="excellent">
+                    <span class="preset-dot green"></span> Excellent Profile
+                </button>
+                <button type="button" class="preset-btn" data-preset="average">
+                    <span class="preset-dot yellow"></span> Average Profile
+                </button>
+                <button type="button" class="preset-btn" data-preset="high_debt">
+                    <span class="preset-dot orange"></span> High Debt Consolidation
+                </button>
+                <button type="button" class="preset-btn" data-preset="delinquent">
+                    <span class="preset-dot red"></span> Recent Inquiries / Delinquent
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Split Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Side: Interactive Input Form -->
+            <main class="card form-card">
+                <h2 class="card-title">Applicant Credentials</h2>
+                <form id="loan-evaluation-form">
+                    
+                    <div class="form-section-title">Loan & Purpose</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="purpose">Loan Purpose</label>
+                            <select id="purpose" name="purpose" required>
+                                <option value="debt_consolidation" selected>Debt Consolidation</option>
+                                <option value="credit_card">Credit Card</option>
+                                <option value="home_improvement">Home Improvement</option>
+                                <option value="major_purchase">Major Purchase</option>
+                                <option value="small_business">Small Business</option>
+                                <option value="educational">Educational</option>
+                                <option value="all_other">All Other Purposes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="int_rate">Interest Rate (%)</label>
+                            <input type="number" step="0.0001" min="0.01" max="1.0" id="int_rate" name="int.rate" placeholder="e.g. 0.1189" required>
+                            <span class="input-helper">Express as decimal (0.1189 = 11.89%)</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="installment">Monthly Installment ($)</label>
+                            <input type="number" step="0.01" min="1.00" id="installment" name="installment" placeholder="e.g. 354.76" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="log_annual_inc">Log Annual Income</label>
+                            <input type="number" step="0.000001" min="1.0" id="log_annual_inc" name="log.annual.inc" placeholder="e.g. 11.3504" required>
+                            <span class="input-helper">Natural Log of Annual Income (ln(salary))</span>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">Financial Health Metrics</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dti">Debt-to-Income (DTI) Ratio</label>
+                            <input type="number" step="0.01" min="0.0" id="dti" name="dti" placeholder="e.g. 19.48" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fico">FICO Credit Score</label>
+                            <input type="number" min="300" max="850" id="fico" name="fico" placeholder="e.g. 737" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="days_with_cr_line">Days of Active Credit History</label>
+                            <input type="number" step="any" min="0.0" id="days_with_cr_line" name="days.with.cr.line" placeholder="e.g. 5640" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="revol_bal">Revolving Balance ($)</label>
+                            <input type="number" min="0" id="revol_bal" name="revol.bal" placeholder="e.g. 28854" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="revol_util">Revolving Utilization (%)</label>
+                            <input type="number" step="0.1" min="0.0" max="200" id="revol_util" name="revol.util" placeholder="e.g. 52.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="inq_last_6mths">Inquiries (Last 6 Months)</label>
+                            <input type="number" min="0" id="inq_last_6mths" name="inq.last.6mths" placeholder="e.g. 0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">Derogatory Records</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="delinq_2yrs">Delinquencies (Last 2 Years)</label>
+                            <input type="number" min="0" id="delinq_2yrs" name="delinq.2yrs" placeholder="e.g. 0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pub_rec">Public Derogatory Records</label>
+                            <input type="number" min="0" id="pub_rec" name="pub.rec" placeholder="e.g. 0" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="evaluate-btn">Run Underwriting Analysis</button>
+                </form>
+            </main>
+
+            <!-- Right Side: Live Results Deck -->
+            <section class="result-deck">
+                <div class="card result-card empty" id="result-card">
+                    
+                    <!-- Pre-evaluation State -->
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <h3>Awaiting Underwriting Input</h3>
+                        <p>Adjust the credentials in the form or load one of the profile templates above, then click <strong>"Run Underwriting Analysis"</strong> to evaluate the loan applicant using our tuned XGBoost classifier.</p>
+                    </div>
+
+                    <!-- Evaluation Loading State -->
+                    <div class="loading-state hidden" id="loading-state">
+                        <div class="spinner"></div>
+                        <h3>Running Underwriting Evaluation...</h3>
+                        <p>Processing applicant parameters, encoding variables, and applying standard scaler transformations.</p>
+                    </div>
+
+                    <!-- Evaluation Completed State -->
+                    <div class="completed-state hidden" id="completed-state">
+                        <div class="status-badge" id="status-badge">
+                            <span class="status-icon" id="status-icon">✦</span>
+                            <span class="status-text" id="status-text">Eligible</span>
+                        </div>
+
+                        <div class="gauge-container">
+                            <svg class="progress-ring" width="160" height="160">
+                                <circle class="progress-ring__circle-bg" stroke-width="12" fill="transparent" r="70" cx="80" cy="80" />
+                                <circle class="progress-ring__circle" id="confidence-circle" stroke-width="12" stroke-dasharray="439.8" stroke-dashoffset="439.8" stroke-linecap="round" fill="transparent" r="70" cx="80" cy="80" />
+                            </svg>
+                            <div class="gauge-text">
+                                <span class="gauge-percentage" id="confidence-percentage">0%</span>
+                                <span class="gauge-label">Eligibility Score</span>
+                            </div>
+                        </div>
+
+                        <div class="breakout-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Model Classification:</span>
+                                <span class="stat-value text-glow" id="label-decision">Met</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Meets Credit Policy (Class 1):</span>
+                                <span class="stat-value" id="probability-eligible">0.00%</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Does Not Meet Policy (Class 0):</span>
+                                <span class="stat-value" id="probability-ineligible">0.00%</span>
+                            </div>
+                        </div>
+
+                        <!-- Explainer/Recommendations -->
+                        <div class="insights-box">
+                            <h4 class="insights-title">🤖 Risk Model Insights</h4>
+                            <ul class="insights-list" id="insights-list">
+                                <!-- JS inserts insights here based on fields -->
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
